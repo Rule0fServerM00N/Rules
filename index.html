@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Правила сервера</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=Unbounded:wght@500;600;700&display=swap">
+<style>
+/* Layout: sticky category list on the left, rule cards on the right; collapses to chips above the cards on phones */
+:root{
+  --bg:#0d0920;
+  --panel:#171233;
+  --card:#1b1538;
+  --nav-on:#2b2354;
+  --line:rgba(167,139,250,.16);
+  --fg:#f4f0ff;
+  --muted:#a59dc6;
+  --accent:#8b5cf6;
+  --accent-hi:#b39bff;
+  --warn-bg:#2a2016;
+  --warn-fg:#f5a524;
+  --danger:#f0647a;
+  --ff-head:'Unbounded','Onest',system-ui,sans-serif;
+  --ff-body:'Onest',system-ui,'Segoe UI',Roboto,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--fg);
+  font:15px/1.5 var(--ff-body);
+  padding-block:28px 56px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+}
+.sky{position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse 60% 40% at 15% 0%,rgba(139,92,246,.20),transparent 70%),
+             radial-gradient(ellipse 50% 40% at 100% 100%,rgba(109,40,217,.14),transparent 70%)}
+.sky::before{content:"";position:absolute;left:0;right:0;top:0;height:2px;
+  background:linear-gradient(90deg,transparent,rgba(167,139,250,.7),transparent)}
+.star{position:absolute;border-radius:50%;background:#e9e1ff}
+#app{position:relative;z-index:1;max-width:1240px;margin:0 auto}
+
+.top{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:26px}
+.top svg{flex:none}
+.top h1{margin:0;font:700 clamp(22px,4vw,30px)/1.1 var(--ff-head);text-transform:uppercase;letter-spacing:.01em;text-wrap:balance;min-width:0;overflow-wrap:anywhere}
+.top .grow{flex:1}
+.tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.status{color:var(--muted);font-size:13px}
+
+.layout{display:grid;grid-template-columns:250px minmax(0,1fr);gap:24px;align-items:start}
+.nav{position:sticky;top:16px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:8px;display:flex;flex-direction:column;gap:4px}
+.nav a{display:block;padding:12px 14px;border-radius:10px;color:var(--fg);text-decoration:none;font-weight:600;font-size:14px;overflow-wrap:anywhere;transition:background .15s}
+.nav a:hover{background:rgba(139,92,246,.14)}
+.nav a.on{background:var(--nav-on)}
+.nav a:focus-visible,.btn:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--accent-hi);outline-offset:2px}
+.nav .add{margin-top:6px}
+
+.rules{display:flex;flex-direction:column;gap:16px;min-width:0}
+.rule{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.rule-body{display:flex;gap:18px;align-items:flex-start;padding:22px 24px;min-width:0}
+.num{flex:none;font:600 22px/1.2 var(--ff-head);color:var(--fg);min-width:52px}
+.rule-body p{margin:0;font-weight:600;font-size:15px;white-space:pre-line;overflow-wrap:anywhere;min-width:0;text-wrap:pretty}
+.pun{background:var(--warn-bg);color:var(--warn-fg);padding:14px 24px;font-weight:500;font-size:14px;overflow-wrap:anywhere;white-space:pre-line}
+.empty{background:var(--card);border:1px dashed var(--line);border-radius:16px;padding:28px 24px;color:var(--muted)}
+.empty b{color:var(--fg)}
+
+.btn{font:600 14px var(--ff-body);cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--fg);padding:10px 16px;border-radius:10px;transition:background .15s,border-color .15s}
+.btn:hover{background:var(--nav-on);border-color:rgba(167,139,250,.4)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{background:#7c4be8}
+.btn.danger{color:var(--danger)}
+.btn.danger.armed{background:var(--danger);border-color:var(--danger);color:#1a0610}
+.btn.small{padding:6px 10px;font-size:13px}
+.btn[disabled]{opacity:.5;cursor:default}
+
+.field{display:block;width:100%;background:#120d2a;color:var(--fg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:500 15px/1.5 var(--ff-body)}
+.field:focus{border-color:var(--accent-hi);outline:none}
+textarea.field{resize:vertical;min-height:48px;overflow:hidden}
+.ed-head{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:4px}
+.ed-head .field{flex:1;min-width:180px;font-weight:700}
+.ed-rule{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 20px;display:flex;gap:16px;min-width:0}
+.ed-fields{flex:1;min-width:0;display:flex;flex-direction:column;gap:10px}
+.ed-lab{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:4px}
+.ed-actions{display:flex;flex-direction:column;gap:6px;flex:none}
+
+.export{margin-top:28px;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px 24px}
+.export h2{margin:0 0 8px;font:600 16px var(--ff-head)}
+.export p{margin:0 0 14px;color:var(--muted);font-size:14px;max-width:70ch}
+.export textarea.field{font:13px/1.5 ui-monospace,Menlo,Consolas,monospace;height:260px;overflow:auto;resize:vertical;margin-bottom:12px}
+.export code{color:var(--accent-hi)}
+
+@media (max-width:820px){
+  .layout{grid-template-columns:minmax(0,1fr);gap:16px}
+  .nav{position:static;flex-direction:row;overflow-x:auto;padding:6px}
+  .nav a{white-space:nowrap}
+  .rule-body{padding:18px 16px;gap:14px}
+  .num{min-width:42px;font-size:18px}
+  .pun{padding:12px 16px}
+  .ed-rule{flex-direction:column;padding:16px}
+  .ed-actions{flex-direction:row;flex-wrap:wrap}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<!-- ПРАВИЛА: чтобы поменять их вручную, редактируйте текст между тегами ниже.
+     t = текст правила, p = наказание (можно оставить пустым: "p": ""). -->
+<script id="rules-data" type="application/json">
+{
+  "title": "Правила",
+  "cats": [
+    {
+      "id": "sec-1",
+      "name": "Основные",
+      "rules": [
+        { "t": "Здесь пишется текст правила. Замените этот пример своим.", "p": "Бан на 7 дней" }
+      ]
+    },
+    { "id": "sec-2", "name": "Общение", "rules": [] },
+    { "id": "sec-3", "name": "Игровой процесс", "rules": [] },
+    { "id": "sec-4", "name": "Никнеймы и аватарки", "rules": [] },
+    { "id": "sec-5", "name": "Прочее", "rules": [] },
+    { "id": "sec-6", "name": "Для администрации", "rules": [] },
+    { "id": "sec-7", "name": "Условия проверки", "rules": [] }
+  ]
+}
+</script>
+
+<script>
+(function(){
+  var KEY = 'server-rules-draft';
+  var app = document.getElementById('app');
+  var fileData = JSON.parse(document.getElementById('rules-data').textContent);
+  // Редактор включается только по адресу вида ваш-сайт/?edit
+  var canEdit = /(^|[?&])edit(=|&|$)/.test(location.search);
+  var local = null;
+  if (canEdit) { try { local = JSON.parse(localStorage.getItem(KEY)); } catch (e) {} }
+  var saved = local || fileData;
+  var draft = null, editing = false, showExport = false;
+  var cur = (location.hash || '').slice(1), armed = null;
+
+  function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function data(){ return editing ? draft : saved; }
+  function curCat(d){
+    for (var i = 0; i < d.cats.length; i++) if (d.cats[i].id === cur) return d.cats[i];
+    return d.cats[0];
+  }
+  function uid(){ return 'sec-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5); }
+
+  (function(){
+    var sky = document.createElement('div'); sky.className = 'sky';
+    for (var i = 0; i < 70; i++){
+      var s = document.createElement('i'); s.className = 'star';
+      var z = Math.random() < .15 ? 3 : (Math.random() < .5 ? 2 : 1);
+      s.style.cssText = 'left:' + (Math.random()*100).toFixed(2) + '%;top:' + (Math.random()*100).toFixed(2) + '%;width:' + z + 'px;height:' + z + 'px;opacity:' + (.25 + Math.random()*.6).toFixed(2);
+      sky.appendChild(s);
+    }
+    document.body.insertBefore(sky, document.body.firstChild);
+  })();
+
+  var ICON = '<svg width="26" height="30" viewBox="0 0 26 30" aria-hidden="true"><path d="M3 0h12l9 9v18a3 3 0 0 1-3 3H3a3 3 0 0 1-3-3V3a3 3 0 0 1 3-3z" fill="#8b5cf6"/><path d="M15 0l9 9h-6a3 3 0 0 1-3-3z" fill="#c4b0ff"/></svg>';
+
+  function btnDel(key, label){
+    var on = armed === key;
+    return '<button class="btn small danger' + (on ? ' armed' : '') + '" data-act="del" data-key="' + key + '">' + (on ? 'Точно удалить?' : label) + '</button>';
+  }
+
+  function tools(){
+    if (!canEdit) return '';
+    if (editing) return '<button class="btn" data-act="cancel">Отмена</button><button class="btn primary" data-act="save">Сохранить</button>';
+    return (local ? btnDel('reset', 'Сбросить к файлу') : '') +
+      '<button class="btn" data-act="export">Данные для файла</button>' +
+      '<button class="btn primary" data-act="edit">Редактировать</button>';
+  }
+
+  function viewRules(c, ci){
+    if (!c.rules.length) return '<div class="empty"><b>В этом разделе пока нет правил.</b></div>';
+    return c.rules.map(function(r, i){
+      return '<article class="rule"><div class="rule-body"><span class="num">' + (ci+1) + '.' + (i+1) + '</span><p>' + esc(r.t) + '</p></div>' +
+        (r.p && r.p.trim() ? '<div class="pun">Наказание: ' + esc(r.p) + '</div>' : '') + '</article>';
+    }).join('');
+  }
+
+  function editRules(c, ci){
+    var head = '<div class="ed-head"><input class="field" id="cat-name" data-f="cat" value="' + esc(c.name) + '" aria-label="Название раздела">' + btnDel('cat', 'Удалить раздел') + '</div>';
+    var list = c.rules.map(function(r, i){
+      return '<div class="ed-rule"><span class="num">' + (ci+1) + '.' + (i+1) + '</span><div class="ed-fields">' +
+        '<div><div class="ed-lab">Текст правила</div><textarea class="field" id="rt-' + i + '" data-f="t" data-i="' + i + '" rows="2">' + esc(r.t) + '</textarea></div>' +
+        '<div><div class="ed-lab">Наказание</div><input class="field" id="rp-' + i + '" data-f="p" data-i="' + i + '" value="' + esc(r.p) + '" placeholder="Например: Бан на 30 дней"></div>' +
+        '</div><div class="ed-actions">' +
+        '<button class="btn small" data-act="up" data-i="' + i + '"' + (i === 0 ? ' disabled' : '') + ' aria-label="Выше">↑</button>' +
+        '<button class="btn small" data-act="down" data-i="' + i + '"' + (i === c.rules.length-1 ? ' disabled' : '') + ' aria-label="Ниже">↓</button>' +
+        btnDel('r' + i, 'Удалить') + '</div></div>';
+    }).join('');
+    return head + list + '<div><button class="btn" data-act="addRule">+ Добавить правило</button></div>';
+  }
+
+  function exportPanel(){
+    var json = JSON.stringify(saved, null, 2).replace(/</g, '\\u003c');
+    return '<section class="export"><h2>Данные для index.html</h2>' +
+      '<p>Правки сохранены только в этом браузере. Чтобы они появились на сайте для всех: скопируйте данные ниже, откройте <code>index.html</code>, ' +
+      'найдите блок <code>&lt;script id="rules-data"&gt;</code>, замените всё между его тегами скопированным текстом и загрузите файл на GitHub.</p>' +
+      '<textarea class="field" id="exp" readonly>' + esc(json) + '</textarea>' +
+      '<button class="btn primary" data-act="copy">Скопировать</button> <span class="status" id="copy-msg"></span></section>';
+  }
+
+  function render(){
+    var d = data(), c = curCat(d);
+    if (c) cur = c.id;
+    var ci = c ? d.cats.indexOf(c) : 0;
+    var nav = d.cats.map(function(k){
+      return '<a href="#' + k.id + '" class="' + (k.id === cur ? 'on' : '') + '">' + esc(k.name || 'Без названия') + '</a>';
+    }).join('') + (editing ? '<button class="btn small add" data-act="addCat">+ Раздел</button>' : '');
+    var title = editing
+      ? '<input class="field" id="site-title" data-f="title" value="' + esc(d.title) + '" aria-label="Заголовок страницы" style="max-width:420px;font:700 20px var(--ff-head);text-transform:uppercase">'
+      : '<h1>' + esc(d.title) + '</h1>';
+    var main = !c ? '<div class="empty"><b>Разделов нет.</b></div>' : (editing ? editRules(c, ci) : viewRules(c, ci));
+    app.innerHTML = '<header class="top">' + ICON + title + '<span class="grow"></span><div class="tools">' + tools() + '</div></header>' +
+      '<div class="layout"><nav class="nav" aria-label="Разделы правил">' + nav + '</nav><main class="rules">' + main + '</main></div>' +
+      (canEdit && showExport && !editing ? exportPanel() : '');
+    var tas = app.querySelectorAll('textarea:not([readonly])'); for (var i = 0; i < tas.length; i++) autosize(tas[i]);
+  }
+
+  function autosize(t){ t.style.height = 'auto'; t.style.height = (t.scrollHeight + 2) + 'px'; }
+
+  app.addEventListener('input', function(e){
+    var t = e.target, f = t.dataset && t.dataset.f; if (!f || !draft) return;
+    if (f === 'title') draft.title = t.value;
+    else if (f === 'cat') curCat(draft).name = t.value;
+    else curCat(draft).rules[+t.dataset.i][f] = t.value;
+    if (t.tagName === 'TEXTAREA') autosize(t);
+  });
+
+  app.addEventListener('click', function(e){
+    var b = e.target.closest('[data-act]'); if (!b || b.disabled) return;
+    var act = b.dataset.act, i = +b.dataset.i, c;
+    if (act === 'del'){
+      var key = b.dataset.key;
+      if (armed !== key){ armed = key; render(); return; }
+      armed = null;
+      if (key === 'reset'){
+        try { localStorage.removeItem(KEY); } catch (err) {}
+        local = null; saved = fileData; render(); return;
+      }
+      c = curCat(draft);
+      if (key === 'cat'){ draft.cats.splice(draft.cats.indexOf(c), 1); cur = draft.cats[0] ? draft.cats[0].id : ''; }
+      else c.rules.splice(+key.slice(1), 1);
+      render(); return;
+    }
+    armed = null;
+    if (act === 'edit'){ draft = JSON.parse(JSON.stringify(saved)); editing = true; showExport = false; render(); }
+    else if (act === 'cancel'){ editing = false; draft = null; render(); }
+    else if (act === 'save'){
+      saved = JSON.parse(JSON.stringify(draft)); local = saved;
+      try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch (err) {}
+      editing = false; draft = null; showExport = true; render();
+      var ex = document.getElementById('exp'); if (ex) ex.scrollIntoView({block:'center'});
+    }
+    else if (act === 'export'){ showExport = !showExport; render(); }
+    else if (act === 'copy'){
+      var ta = document.getElementById('exp'), m = document.getElementById('copy-msg');
+      function sel(){ ta.focus(); ta.select(); if (m) m.textContent = 'Выделено, нажмите Ctrl+C'; }
+      if (navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(ta.value).then(function(){ if (m) m.textContent = 'Скопировано'; }, sel);
+      } else sel();
+    }
+    else if (act === 'addRule'){ curCat(draft).rules.push({t:'', p:''}); render(); var tas = app.querySelectorAll('textarea'); if (tas.length) tas[tas.length-1].focus(); }
+    else if (act === 'up'){ c = curCat(draft); c.rules.splice(i-1, 0, c.rules.splice(i, 1)[0]); render(); }
+    else if (act === 'down'){ c = curCat(draft); c.rules.splice(i+1, 0, c.rules.splice(i, 1)[0]); render(); }
+    else if (act === 'addCat'){ var n = {id: uid(), name: 'Новый раздел', rules: []}; draft.cats.push(n); cur = n.id; render(); var f = document.getElementById('cat-name'); if (f){ f.focus(); f.select(); } }
+  });
+
+  window.addEventListener('hashchange', function(){ cur = location.hash.slice(1); armed = null; render(); });
+  render();
+})();
+</script>
+</body>
+</html>
