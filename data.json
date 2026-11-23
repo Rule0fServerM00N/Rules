@@ -223,6 +223,19 @@
       "skey": ""
     },
     {
+      "id": "p-mwtggynezsr",
+      "name": "Баны и Муты",
+      "icon": "ban",
+      "badge": "",
+      "type": "punish",
+      "title": "Бан и мут",
+      "url": "",
+      "cats": [],
+      "cards": [],
+      "sburl": "https://mhsmouapemihdlkosoon.supabase.co",
+      "skey": "sb_publishable_g1bM6WN6sHnth2SoBqXCWg_0QbUKpk6"
+    },
+    {
       "id": "p-mwtbg3j3q9r",
       "name": "Баны",
       "icon": "ban",
@@ -246,19 +259,6 @@
       "cats": [],
       "cards": [],
       "sburl": "",
-      "skey": ""
-    },
-    {
-      "id": "p-mwtggynezsr",
-      "name": "Баны и Муты",
-      "icon": "ban",
-      "badge": "",
-      "type": "punish",
-      "title": "Бан и мут",
-      "url": "",
-      "cats": [],
-      "cards": [],
-      "sburl": "sb_publishable_g1bM6WN6sHnth2SoBqXCWg_0QbUKpk6",
       "skey": ""
     }
   ]
