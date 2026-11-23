@@ -1,6 +1,46 @@
 {
   "tabs": [
     {
+      "id": "p-mwt1uup5tjs",
+      "name": "Ссылки и Айпи",
+      "icon": "link",
+      "badge": "",
+      "type": "cards",
+      "title": "Ссылки и Айпи",
+      "url": "",
+      "cats": [],
+      "cards": [
+        {
+          "h": "Ссылки и Айпи",
+          "t": "Айпи сервера Moon:\nMIR300.aternos.me:49155\n\nСылка на этот сайт:\nhttps://rule0fserverm00n.github.io/Rules/\n\nСылка на дискорд сервер Moon:\nhttps://discord.gg/x7daGbZa7U\n\nКанал Media \"ZenoEzz\"\nhttps://www.youtube.com/@Zen0High13\n\nКанал Media \"Polidd\"\nhttps://www.youtube.com/@POLIDD"
+        }
+      ],
+      "sburl": "",
+      "skey": ""
+    },
+    {
+      "id": "p-mwt1fkahgtq",
+      "name": "Моды",
+      "icon": "info",
+      "badge": "",
+      "type": "cards",
+      "title": "Запрещённые и разешенные моды",
+      "url": "",
+      "cats": [],
+      "cards": [
+        {
+          "h": "❌Список запрещённых модов",
+          "t": "ReplayMod, IsometricRender, CmdCam, WorldDownloader, Flashback\n\nAutoMining, ReplantingCrops, AutoHarvest, Reap, Tweakeroo, AutoFish, Accurate Block Placement, Baritone\n\nPlayer Spotlight, AucHelper, ChestTracker, Friend Highlighter, Donut Auctions, XRay, DiamondGen, FreeCam, TrueSight, МиниКарты, Neat, MobHealthBar, Litematica\\Schematica, block-entity-tooltip, WorldEdit, Better PVP, WorldDownloader, RemoveBlindness (и его аналоги), Re:Entity Outline, AntiInvis, Cooldowns HUD (UseTracker), CheatUtils, No Darkness Effect (removewardeneffect), funtime-ah-helper\n\nAutoBuy (и его аналоги), AutoSell (и его аналоги), AutoPilot\n\nInventoryControlTweaks, AutoLeave, Foodslot, Quickstack, ItemSwap, Movement in GUI, FasterBlockPlacement, Firework Helper, Effortless Building, InvMove, Inventory Profiles Next. autojumpreset\n\nDont Heat Teammates, Don't hit teammates, CleanCut, AutoAttack, AutoAim,\n\nFeverVisuals, LuminarVisuals, Ascart, Badlion Client, Эмуляторы/лаунчеры для мобильных устройств (Pojav, FCL и т.п.), SimpleVisuals, SoupApi (Версии ниже 3.0.0), WaveVisuals, ClientCommands. Взломанные версии мультимодификаций , Самостоятельно модифицированные мультимодификации."
+        },
+        {
+          "h": "✅Список разрешенных модов",
+          "t": "TapeMouse, AutoClanInvest, AutoTrade, AutoTransfer, TopkaAutoDrop, AutoDrop, AutoEat, MacroKeybinds\n\nPulseVisuals, TopkaVisuals, CustomBlockOverlay, TrajectoryGuard, ViewModel-Changer, Do a Barrel Roll, MoonLightClient, SoupApi (SoupVisuals), SoupBetter, PhantomVisuals, Mytheria, KastrixVisuals, RivalVisuals, DestraVisuals, ReallyVisuals, GammaUtils, Stark Helper, FlyVisuals, TheCartel, FillVisuals, RainVisuals, NextVisuals\n\nrct, PRIME PARTS, Chunks fade in, berdinskiybear's armor hud, AntiGhost, TopkaTags, ContainerSearcher, ItemLocks, Giselbaer's Durability Viewer, MiniHUD, TopkaHealth, ExitLag, Abstract, Custom FOV, Show Yourself, Jade, JJElytraSwap, InventoryCleaner, VisualRatio, AxolotlClient, ItemScroller, NoHurtCam, LavaClearWater, BetterHitReg, ZakoHealthIndicator, Pearl Trajectory, wWaypoints, Feather Client, Opponent Armor Indicator, ZakoOpt, Recorder Ingame, Streake"
+        }
+      ],
+      "sburl": "",
+      "skey": ""
+    },
+    {
       "id": "rules",
       "name": "Правила",
       "icon": "doc",
@@ -178,43 +218,9 @@
       ],
       "badge": "",
       "url": "",
-      "cards": []
-    },
-    {
-      "id": "p-mwt1fkahgtq",
-      "name": "Моды",
-      "icon": "info",
-      "badge": "",
-      "type": "cards",
-      "title": "Запрещённые и разешенные моды",
-      "url": "",
-      "cats": [],
-      "cards": [
-        {
-          "h": "❌Список запрещённых модов",
-          "t": "ReplayMod, IsometricRender, CmdCam, WorldDownloader, Flashback\n\nAutoMining, ReplantingCrops, AutoHarvest, Reap, Tweakeroo, AutoFish, Accurate Block Placement, Baritone\n\nPlayer Spotlight, AucHelper, ChestTracker, Friend Highlighter, Donut Auctions, XRay, DiamondGen, FreeCam, TrueSight, МиниКарты, Neat, MobHealthBar, Litematica\\Schematica, block-entity-tooltip, WorldEdit, Better PVP, WorldDownloader, RemoveBlindness (и его аналоги), Re:Entity Outline, AntiInvis, Cooldowns HUD (UseTracker), CheatUtils, No Darkness Effect (removewardeneffect), funtime-ah-helper\n\nAutoBuy (и его аналоги), AutoSell (и его аналоги), AutoPilot\n\nInventoryControlTweaks, AutoLeave, Foodslot, Quickstack, ItemSwap, Movement in GUI, FasterBlockPlacement, Firework Helper, Effortless Building, InvMove, Inventory Profiles Next. autojumpreset\n\nDont Heat Teammates, Don't hit teammates, CleanCut, AutoAttack, AutoAim,\n\nFeverVisuals, LuminarVisuals, Ascart, Badlion Client, Эмуляторы/лаунчеры для мобильных устройств (Pojav, FCL и т.п.), SimpleVisuals, SoupApi (Версии ниже 3.0.0), WaveVisuals, ClientCommands. Взломанные версии мультимодификаций , Самостоятельно модифицированные мультимодификации."
-        },
-        {
-          "h": "✅Список разрешенных модов",
-          "t": "TapeMouse, AutoClanInvest, AutoTrade, AutoTransfer, TopkaAutoDrop, AutoDrop, AutoEat, MacroKeybinds\n\nPulseVisuals, TopkaVisuals, CustomBlockOverlay, TrajectoryGuard, ViewModel-Changer, Do a Barrel Roll, MoonLightClient, SoupApi (SoupVisuals), SoupBetter, PhantomVisuals, Mytheria, KastrixVisuals, RivalVisuals, DestraVisuals, ReallyVisuals, GammaUtils, Stark Helper, FlyVisuals, TheCartel, FillVisuals, RainVisuals, NextVisuals\n\nrct, PRIME PARTS, Chunks fade in, berdinskiybear's armor hud, AntiGhost, TopkaTags, ContainerSearcher, ItemLocks, Giselbaer's Durability Viewer, MiniHUD, TopkaHealth, ExitLag, Abstract, Custom FOV, Show Yourself, Jade, JJElytraSwap, InventoryCleaner, VisualRatio, AxolotlClient, ItemScroller, NoHurtCam, LavaClearWater, BetterHitReg, ZakoHealthIndicator, Pearl Trajectory, wWaypoints, Feather Client, Opponent Armor Indicator, ZakoOpt, Recorder Ingame, Streake"
-        }
-      ]
-    },
-    {
-      "id": "p-mwt1uup5tjs",
-      "name": "Ссылки и Айпи",
-      "icon": "link",
-      "badge": "",
-      "type": "cards",
-      "title": "Ссылки и Айпи",
-      "url": "",
-      "cats": [],
-      "cards": [
-        {
-          "h": "Ссылки и Айпи",
-          "t": "Айпи сервера Moon:\nMIR300.aternos.me:49155\n\nСылка на этот сайт:\nhttps://rule0fserverm00n.github.io/Rules/\n\nСылка на дискорд сервер Moon:\nhttps://discord.gg/x7daGbZa7U\n\nКанал Media \"ZenoEzz\"\nhttps://www.youtube.com/@Zen0High13\n\nКанал Media \"Polidd\"\nhttps://www.youtube.com/@POLIDD"
-        }
-      ]
+      "cards": [],
+      "sburl": "",
+      "skey": ""
     },
     {
       "id": "p-mwtbg3j3q9r",
@@ -225,7 +231,9 @@
       "title": "Только Баны",
       "url": "",
       "cats": [],
-      "cards": []
+      "cards": [],
+      "sburl": "",
+      "skey": ""
     },
     {
       "id": "p-mwtbgzt35nl",
@@ -236,7 +244,22 @@
       "title": "Только муты",
       "url": "",
       "cats": [],
-      "cards": []
+      "cards": [],
+      "sburl": "",
+      "skey": ""
+    },
+    {
+      "id": "p-mwtggynezsr",
+      "name": "Баны и Муты",
+      "icon": "ban",
+      "badge": "",
+      "type": "punish",
+      "title": "Бан и мут",
+      "url": "",
+      "cats": [],
+      "cards": [],
+      "sburl": "sb_publishable_g1bM6WN6sHnth2SoBqXCWg_0QbUKpk6",
+      "skey": ""
     }
   ]
 }
