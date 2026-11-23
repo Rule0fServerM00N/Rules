@@ -474,11 +474,11 @@ textarea.field{resize:vertical;min-height:48px;overflow:hidden}
   });
 
   // ---------- Таблица банов и мутов (Supabase, обычный REST без библиотек) ----------
-  var pun = { rows: null, err: '', filter: 'all', q: '', formOpen: false, loginOpen: false, armed: null, session: null };
+  var pun = { rows: null, err: '', filter: 'all', q: '', formOpen: false, loginOpen: false, armed: null, session: null, curator: false };
   try { pun.session = JSON.parse(localStorage.getItem('pun-session')); } catch (e) {}
 
   function punSave(j, email){
-    if (!j){ pun.session = null; try { localStorage.removeItem('pun-session'); } catch (e) {} return; }
+    if (!j){ pun.session = null; pun.curator = false; try { localStorage.removeItem('pun-session'); } catch (e) {} return; }
     pun.session = { access_token: j.access_token, refresh_token: j.refresh_token, exp: Date.now() + (j.expires_in || 3600) * 1000, email: email };
     try { localStorage.setItem('pun-session', JSON.stringify(pun.session)); } catch (e) {}
   }
@@ -534,7 +534,7 @@ textarea.field{resize:vertical;min-height:48px;overflow:hidden}
     var box = document.getElementById('pun-table'); if (!box) return;
     if (pun.err){ box.innerHTML = '<div class="empty">' + esc(pun.err) + '</div>'; return; }
     if (!pun.rows){ box.innerHTML = '<div class="empty">Загрузка…</div>'; return; }
-    var q = pun.q.trim().toLowerCase(), adm = !!pun.session;
+    var q = pun.q.trim().toLowerCase(), adm = !!(pun.session && pun.curator);
     var rows = pun.rows.filter(function(r){
       if (pun.filter === 'ban' && r.kind !== 'ban') return false;
       if (pun.filter === 'mute' && r.kind !== 'mute') return false;
@@ -556,7 +556,7 @@ textarea.field{resize:vertical;min-height:48px;overflow:hidden}
   function punDrawAuth(){
     var act = document.getElementById('pun-actions'), box = document.getElementById('pun-auth'); if (!act || !box) return;
     if (pun.session){
-      act.innerHTML = '<button class="btn small primary" data-pa="form-toggle">+ Добавить наказание</button><button class="btn small" data-pa="logout">Выйти</button>';
+      act.innerHTML = (pun.curator ? '<span class="chip active" style="align-self:center">Куратор</span>' : '') + '<button class="btn small primary" data-pa="form-toggle">+ Добавить наказание</button><button class="btn small" data-pa="logout">Выйти</button>';
       box.innerHTML = pun.formOpen
         ? '<form id="pun-add" class="ed-panel"><h2>Новое наказание</h2><div class="ed-grid">' +
           '<div><div class="ed-lab">Тип</div><select class="field" id="pa-kind"><option value="ban">Бан</option><option value="mute">Мут</option></select></div>' +
@@ -584,6 +584,11 @@ textarea.field{resize:vertical;min-height:48px;overflow:hidden}
     pun.err = '';
     try { pun.rows = await (await punFetch(t, '/rest/v1/punishments?select=*&order=created_at.desc&limit=500')).json(); }
     catch (e){ pun.err = punErr(e); }
+    pun.curator = false;
+    if (pun.session){
+      // База отдаёт строку только самому куратору, обычному админу придёт пустой список
+      try { pun.curator = (await (await punFetch(t, '/rest/v1/curators?select=user_id')).json()).length > 0; } catch (e) {}
+    }
     punDrawTable(); punDrawAuth();
   }
 
