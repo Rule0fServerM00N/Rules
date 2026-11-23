@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=Unbounded:wght@500;600;700&display=swap">
 <style>
-/* Layout: sticky category list on the left, rule cards on the right; collapses to chips above the cards on phones */
+/* Layout: top tab bar (pages) -> page header -> sidebar of sections + cards. Content lives in data.json */
 :root{
   --bg:#0d0920;
   --panel:#171233;
@@ -22,6 +22,7 @@
   --warn-bg:#2a2016;
   --warn-fg:#f5a524;
   --danger:#f0647a;
+  --badge:#e5484d;
   --ff-head:'Unbounded','Onest',system-ui,sans-serif;
   --ff-body:'Onest',system-ui,'Segoe UI',Roboto,sans-serif;
   color-scheme:dark;
@@ -33,7 +34,7 @@ body{
   background:var(--bg);
   color:var(--fg);
   font:15px/1.5 var(--ff-body);
-  padding-block:28px 56px;
+  padding-block:20px 56px;
   padding-left:max(16px,env(safe-area-inset-left,0px));
   padding-right:max(16px,env(safe-area-inset-right,0px));
 }
@@ -45,19 +46,30 @@ body{
 .star{position:absolute;border-radius:50%;background:#e9e1ff}
 #app{position:relative;z-index:1;max-width:1240px;margin:0 auto}
 
+/* top tabs */
+.tabs{display:flex;align-items:center;gap:6px;padding:6px;background:var(--panel);border:1px solid var(--line);border-radius:16px;margin-bottom:28px;overflow-x:auto;scrollbar-width:thin}
+.tab{display:flex;align-items:center;gap:8px;padding:12px 16px;border-radius:12px;color:var(--fg);text-decoration:none;font-weight:600;font-size:15px;white-space:nowrap;flex:none;transition:background .15s}
+.tab:hover{background:rgba(139,92,246,.14)}
+.tab.on{background:var(--nav-on)}
+.tab svg{flex:none}
+.tab .ext{opacity:.55}
+.tb{background:var(--badge);color:#fff;font-size:12px;font-weight:700;padding:2px 8px;border-radius:7px;line-height:1.4}
+.tabs .btn{flex:none}
+
 .top{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:26px}
-.top svg{flex:none}
+.top svg{flex:none;color:var(--accent)}
 .top h1{margin:0;font:700 clamp(22px,4vw,30px)/1.1 var(--ff-head);text-transform:uppercase;letter-spacing:.01em;text-wrap:balance;min-width:0;overflow-wrap:anywhere}
 .top .grow{flex:1}
 .tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .status{color:var(--muted);font-size:13px}
 
 .layout{display:grid;grid-template-columns:250px minmax(0,1fr);gap:24px;align-items:start}
+.layout.single{grid-template-columns:minmax(0,1fr)}
 .nav{position:sticky;top:16px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:8px;display:flex;flex-direction:column;gap:4px}
 .nav a{display:block;padding:12px 14px;border-radius:10px;color:var(--fg);text-decoration:none;font-weight:600;font-size:14px;overflow-wrap:anywhere;transition:background .15s}
 .nav a:hover{background:rgba(139,92,246,.14)}
 .nav a.on{background:var(--nav-on)}
-.nav a:focus-visible,.btn:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--accent-hi);outline-offset:2px}
+a:focus-visible,.btn:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--accent-hi);outline-offset:2px}
 .nav .add{margin-top:6px}
 
 .rules{display:flex;flex-direction:column;gap:16px;min-width:0}
@@ -68,6 +80,12 @@ body{
 .pun{background:var(--warn-bg);color:var(--warn-fg);padding:14px 24px;font-weight:500;font-size:14px;overflow-wrap:anywhere;white-space:pre-line}
 .empty{background:var(--card);border:1px dashed var(--line);border-radius:16px;padding:28px 24px;color:var(--muted)}
 .empty b{color:var(--fg)}
+.empty a{color:var(--accent-hi)}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px 24px;min-width:0}
+.card h3{margin:0 0 8px;font:700 17px/1.3 var(--ff-head);overflow-wrap:anywhere}
+.card p{margin:0;color:#d9d2f2;white-space:pre-line;overflow-wrap:anywhere}
 
 .btn{font:600 14px var(--ff-body);cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--fg);padding:10px 16px;border-radius:10px;transition:background .15s,border-color .15s}
 .btn:hover{background:var(--nav-on);border-color:rgba(167,139,250,.4)}
@@ -88,9 +106,14 @@ textarea.field{resize:vertical;min-height:48px;overflow:hidden}
 .ed-lab{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:4px}
 .ed-actions{display:flex;flex-direction:column;gap:6px;flex:none}
 
+.ed-panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px 20px;margin-bottom:24px}
+.ed-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+.ed-panel-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.ed-panel h2{margin:0 0 14px;font:600 13px var(--ff-body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+
 .export{margin-top:28px;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px 24px}
 .export h2{margin:0 0 8px;font:600 16px var(--ff-head)}
-.export p{margin:0 0 14px;color:var(--muted);font-size:14px;max-width:70ch}
+.export p{margin:0 0 14px;color:var(--muted);font-size:14px;max-width:72ch}
 .export textarea.field{font:13px/1.5 ui-monospace,Menlo,Consolas,monospace;height:260px;overflow:auto;resize:vertical;margin-bottom:12px}
 .export code{color:var(--accent-hi)}
 
@@ -103,6 +126,8 @@ textarea.field{resize:vertical;min-height:48px;overflow:hidden}
   .pun{padding:12px 16px}
   .ed-rule{flex-direction:column;padding:16px}
   .ed-actions{flex-direction:row;flex-wrap:wrap}
+  .tab{padding:10px 12px;font-size:14px}
+  .cards{grid-template-columns:minmax(0,1fr)}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -110,205 +135,96 @@ textarea.field{resize:vertical;min-height:48px;overflow:hidden}
 <body>
 <div id="app"></div>
 
-<!-- ПРАВИЛА: чтобы поменять их вручную, редактируйте текст между тегами ниже.
-     t = текст правила, p = наказание (можно оставить пустым: "p": ""). -->
-<script id="rules-data" type="application/json">
-{
-  "title": "Правила СЕРВЕРА Moon",
-  "cats": [
-    {
-      "id": "sec-2",
-      "name": "Общение",
-      "rules": [
-        {
-          "t": "Оскорбления, буллинг и угрозы в адрес конкретного игрока, проявление токсического, неадекватного поведения, сексизм.",
-          "p": "Мут от 1 до 4 часов \"После 1 предупреждения\"."
-        },
-        {
-          "t": "Оскорбление родных, а также любое их упоминание в негативном ключе.",
-          "p": "Мут на 12 часов \"Без Предупреждения\"."
-        },
-        {
-          "t": "Оскорбления либо участие в конфликтах на тему политики, религии, расы.",
-          "p": "Мут на 12 часов \"Без Предупреждения\"."
-        },
-        {
-          "t": "Пропаганда нацизма, терроризма, прославление их идей, использование их символики.",
-          "p": "Бан на 3 дня \"Без Предупреждения\"."
-        },
-        {
-          "t": "Провокация других игроков на нарушение правил проекта, конфликты и так далее.",
-          "p": "Мут от 1 до 4 Часов \"после 2 предупреждений\"."
-        },
-        {
-          "t": "Оскорбление проекта и его администрации. Наказание выдается в зависимости от тяжести нарушения \"Максимальный срок выдается за оскорбление родных\".",
-          "p": "Мут от 12 часов до 5 дней \"Без предупреждения\""
-        },
-        {
-          "t": "Флуд, спам, помехи и прочие звуки, мешающие игрокам на сервере.",
-          "p": "Мут от 15 до 2 часов \"после предупреждения\"."
-        },
-        {
-          "t": "Реклама запрещенного ПО.",
-          "p": "Бан на 7 дней \"без предупреждения\"."
-        }
-      ]
-    },
-    {
-      "id": "sec-3",
-      "name": "Игровой процесс",
-      "rules": [
-        {
-          "t": "Выход с сервера после вызова на проверку, отказ от проверки на читы в текстовом чате сервера, непредоставление администратору своих контактных данных Discord в течение 360 секунд с момента вызова на проверку, предоставление недействительных контактных данных либо контактных данных другого человека.",
-          "p": "Бан на 21 дней"
-        },
-        {
-          "t": "Осуществление обхода любых видов блокировок любыми средствами запрещено.",
-          "p": "Бан/мут на срок, соответствующий сроку обходящегося наказания."
-        },
-        {
-          "t": "Использование любых багов на сервере для получения преимущества над другими игроками, а также багов, мешающих работе сервера.",
-          "p": "Бан от 1 до 6 часов \"после предупреждения\"."
-        }
-      ]
-    },
-    {
-      "id": "sec-4",
-      "name": "Никнеймы",
-      "rules": [
-        {
-          "t": "Запрещено ставить никнеймы с использованием невидимых символов.",
-          "p": "Бан на 3 часа \"после 3 предупреждений\"."
-        },
-        {
-          "t": "Запрещено ставить никнеймы, теги и аватарки с рекламой сторонних серверов Minecraft и других ресурсов, не одобренных руководством Moon, за исключением личных страниц, каналов, рулеток, сайтов, не относящихся к серверам Minecraft.",
-          "p": "Бан на 1:30 часов \"после предупреждения\"."
-        },
-        {
-          "t": "Запрещено ставить никнейм / аватарку с названием или логотипом запрещенного ПО.",
-          "p": "Бан на 3 дня \"без предупреждений\"."
-        }
-      ]
-    },
-    {
-      "id": "sec-5",
-      "name": "Прочее",
-      "rules": [
-        {
-          "t": "Игрок может быть занесен в черный список проекта (ЧСП) за особо серьезные нарушения, направленные против проекта, его администрации и игроков.",
-          "p": "Бан Навсегда -- Основания для занесения в ЧСП:  --  Явное неуважение / грубое оскорбление руководства и идеологии проекта  --  Нанесение ущерба проекту и его репутации  --  Серьезный слив личной информации  --  Нанесение вреда проверяемому  --   \"По решению Куратора\"."
-        },
-        {
-          "t": "Игрок может быть занесен в черный список общения (ЧСО) за особо серьезные нарушения правил общения, а также за многократные их нарушения.",
-          "p": "Мут Тесктового чата и Голосового чата  --  Основания для занесения в ЧСО:  --  Наличие более 8 мутов за 1 месяца  --  \"По решению Куратора\"."
-        },
-        {
-          "t": "Неадекватное общение в Discord тоже может быть наказуемо.",
-          "p": "по решению Куратора в зависимости от контекста и тяжести нарушения."
-        },
-        {
-          "t": "При повторных, длительных, множественных нарушениях наказания могут выдаваться без предупреждения, а сроки быть значительно увеличены.",
-          "p": ""
-        },
-        {
-          "t": "Наличие активных / замороженных подписок на Читы, хранение запрещенных Модов, скриптов и прочее, которое предоставляет преимущество над другими пользователями сервера менее чем 14 дней назад включительно. В случае удаления, с этого момента должно пройти не менее 7 дней.",
-          "p": "Бан на 14 дней"
-        }
-      ]
-    },
-    {
-      "id": "sec-6",
-      "name": "Для администрации",
-      "rules": [
-        {
-          "t": "У администратора обязательно должен быть микрофон на проверке. Администратор должен иметь соответствующую роль в Discord сервере Moon. За нарушение правил проекта администратор получает не только наказание, но и выговор.",
-          "p": ""
-        },
-        {
-          "t": "У администратора должен быть адекватный ник / профиль / описание / аватарка.",
-          "p": ""
-        },
-        {
-          "t": "Администратору разрешено передавать свой аккаунт другому игроку или администратору только с разрешения Главного администратора или Куратора.",
-          "p": ""
-        },
-        {
-          "t": "Администратор обязан выдавать наказания строго по правилам проекта, указывая точную и конкретную причину. Выдача наказания без предупреждения за правило Наказуемо.",
-          "p": ""
-        },
-        {
-          "t": "Администратор обязан иметь доказательства на каждое наказание, выданное им в течение 3 дней. При вызове на проверку администратор должен иметь запись проверки, на которой обязательно должен быть слышен голос администратора. Если у администратора запросили доказательства, то он обязан их предоставить в течение 24 часов с момента запроса.",
-          "p": ""
-        },
-        {
-          "t": "Администратор должен уважительно и адекватно общаться с игроками и коллегами.",
-          "p": ""
-        },
-        {
-          "t": "Нельзя, играя на сервере, оставаться бездействующим в случае нарушений. Администратор обязан обеспечивать порядок и комфорт для игроков, слушать и модерировать чат сервера, проверять подозрительных игроков, банить читеров.",
-          "p": ""
-        },
-        {
-          "t": "Администратор обязан Строго писать Срок бана и ник игрока который получил наказание в чате предназначенных для Администрации в отделе \"🚫-баны\"",
-          "p": ""
-        }
-      ]
-    },
-    {
-      "id": "sec-7",
-      "name": "Условия проверки",
-      "rules": [
-        {
-          "t": "Отказ выполнять требования администратора на проверке, если эти требования не противоречат другим правилам проекта.",
-          "p": "Бан на 21 дней"
-        },
-        {
-          "t": "В случае оскорбления проверяющего, некорректного / неуважительного общения с администратором, неадекватного поведения, паясничества в грубой форме - проверка заканчивается.",
-          "p": "Бан на 21 дней"
-        },
-        {
-          "t": "Запрещены файлы, пародирующие настоящие читы (папки по типу “тут точно читы”, файлы с идентичными настоящим читам названиями)",
-          "p": "Бан на 5 дней"
-        },
-        {
-          "t": "Проверка должна проходить строго 1 на 1 (администратор и подозреваемый) в специально отведенном канале на Discord сервере Moon: наличие посторонних на проверке строго запрещено, за исключением наборной модерации. Кто-либо еще на проверке может присутствовать только с разрешения Куратора.",
-          "p": ""
-        },
-        {
-          "t": "В случае оскорбительного и неуважительного отношения к проверяемому со стороны администратора вы имеете право выйти из проверки и написать жалобу на того, кто вас проверял с предоставлением всех доказательств, в случае если вы окажетесь правы, по решению Куратора, вас проверит другой администратор: если окажется прав администратор, к вам применяется пункт правил 2.1.",
-          "p": ""
-        },
-        {
-          "t": "\nЗапрещается чистить ПК перед проверкой любыми способами, использование любых программ, скриптов, батников или методов, мешающих проверке, в том числе сбои, эмуляции, прерывание соединения, использование виртуальных машин, технологии Remote Play, отключение ключевых служб windows и тд.",
-          "p": "Бан на 21 дней"
-        }
-      ]
-    }
-  ]
-}
-</script>
-
 <script>
 (function(){
   var KEY = 'server-rules-draft';
   var app = document.getElementById('app');
-  var fileData = JSON.parse(document.getElementById('rules-data').textContent);
   // Редактор включается только по адресу вида ваш-сайт/?edit
   var canEdit = /(^|[?&])edit(=|&|$)/.test(location.search);
-  var local = null;
-  if (canEdit) { try { local = JSON.parse(localStorage.getItem(KEY)); } catch (e) {} }
-  var saved = local || fileData;
-  var draft = null, editing = false, showExport = false;
-  var cur = (location.hash || '').slice(1), armed = null;
+
+  var ICONS = {
+    play:  '<circle cx="12" cy="12" r="10"/><path d="M10 8l6 4-6 4z" fill="currentColor"/>',
+    cart:  '<circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.7 11.5a2 2 0 0 0 2 1.5h7.6a2 2 0 0 0 2-1.5L21 7H6"/>',
+    chart: '<path d="M5 21V10M12 21V4M19 21v-7" stroke-width="3.5"/>',
+    user:  '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+    ban:   '<circle cx="12" cy="12" r="10"/><path d="M5 5l14 14"/>',
+    doc:   '<path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" fill="currentColor"/>',
+    info:  '<circle cx="12" cy="12" r="10"/><path d="M12 11v6M12 7.5v.5"/>',
+    star:  '<path d="M12 2l3 6.5 7 .9-5.2 4.8 1.4 7L12 17.8 5.8 21.2l1.4-7L2 9.4l7-.9z"/>',
+    link:  '<path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/>'
+  };
+  var ICON_NAMES = [['play','Играть'],['cart','Магазин'],['chart','Лидеры'],['user','Игрок'],['ban','Баны'],['doc','Документ'],['info','Информация'],['star','Звезда'],['link','Ссылка']];
+  var TYPES = [['rules','Правила (разделы и правила)'],['cards','Карточки (заголовок и текст)'],['link','Ссылка на другой сайт']];
+
+  function icon(name, size){
+    size = size || 18;
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ICONS[name] || ICONS.doc) + '</svg>';
+  }
+  var EXT = '<svg class="ext" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7M8 7h9v9"/></svg>';
 
   function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-  function data(){ return editing ? draft : saved; }
-  function curCat(d){
-    for (var i = 0; i < d.cats.length; i++) if (d.cats[i].id === cur) return d.cats[i];
-    return d.cats[0];
-  }
-  function uid(){ return 'sec-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5); }
+  function uid(p){ return p + Date.now().toString(36) + Math.random().toString(36).slice(2, 5); }
+  function safeUrl(u){ return /^https?:\/\//i.test(u || '') ? u : '#'; }
 
+  function defaultData(){
+    return { tabs: [{
+      id: 'rules', name: 'Правила', icon: 'doc', badge: '', type: 'rules', title: 'Правила', url: '', cards: [],
+      cats: [
+        { id: 'sec-1', name: 'Основные', rules: [{ t: 'Здесь пишется текст правила. Замените этот пример своим.', p: 'Бан на 7 дней' }] },
+        { id: 'sec-2', name: 'Общение', rules: [] },
+        { id: 'sec-3', name: 'Игровой процесс', rules: [] },
+        { id: 'sec-4', name: 'Никнеймы и аватарки', rules: [] },
+        { id: 'sec-5', name: 'Прочее', rules: [] },
+        { id: 'sec-6', name: 'Для администрации', rules: [] },
+        { id: 'sec-7', name: 'Условия проверки', rules: [] }
+      ]
+    }]};
+  }
+
+  // Приводит данные к нужному виду. Старый формат {title, cats} превращается в одну вкладку «Правила».
+  function normalize(d){
+    if (!d || typeof d !== 'object') d = {};
+    if (!Array.isArray(d.tabs)){
+      d = { tabs: [{ id: 'rules', name: 'Правила', icon: 'doc', type: 'rules', title: d.title || 'Правила', cats: Array.isArray(d.cats) ? d.cats : [] }] };
+    }
+    if (!d.tabs.length) return defaultData();
+    var seen = {};
+    d.tabs.forEach(function(t, i){
+      if (!t.id || seen[t.id]) t.id = uid('p-') + i;
+      seen[t.id] = 1;
+      t.name = t.name || 'Страница';
+      t.icon = ICONS[t.icon] ? t.icon : 'doc';
+      t.badge = t.badge || '';
+      t.type = (t.type === 'cards' || t.type === 'link') ? t.type : 'rules';
+      t.title = t.title || t.name;
+      t.url = t.url || '';
+      t.cats = Array.isArray(t.cats) ? t.cats : [];
+      t.cards = Array.isArray(t.cards) ? t.cards : [];
+      t.cats.forEach(function(c, j){
+        if (!c.id) c.id = 'sec-' + (j + 1);
+        c.name = c.name || '';
+        c.rules = Array.isArray(c.rules) ? c.rules : [];
+        c.rules.forEach(function(r){ r.t = r.t || ''; r.p = r.p || ''; });
+      });
+      t.cards.forEach(function(c){ c.h = c.h || ''; c.t = c.t || ''; });
+    });
+    return d;
+  }
+
+  var fileData, local = null, saved, draft = null, editing = false, showExport = false;
+  var curTabId = '', curCatId = '', armed = null;
+
+  function data(){ return editing ? draft : saved; }
+  function tabOf(d){ for (var i = 0; i < d.tabs.length; i++) if (d.tabs[i].id === curTabId) return d.tabs[i]; return d.tabs[0]; }
+  function catOf(t){ for (var i = 0; i < t.cats.length; i++) if (t.cats[i].id === curCatId) return t.cats[i]; return t.cats[0]; }
+  function parseHash(){ var h = location.hash.slice(1).split('/'); curTabId = h[0] || ''; curCatId = h[1] || ''; }
+  function go(tabId, catId){
+    curTabId = tabId; curCatId = catId || '';
+    try { history.replaceState(null, '', '#' + tabId + (catId ? '/' + catId : '')); } catch (e) {}
+    armed = null; render();
+  }
+
+  // звёзды
   (function(){
     var sky = document.createElement('div'); sky.className = 'sky';
     for (var i = 0; i < 70; i++){
@@ -320,30 +236,57 @@ textarea.field{resize:vertical;min-height:48px;overflow:hidden}
     document.body.insertBefore(sky, document.body.firstChild);
   })();
 
-  var ICON = '<svg width="26" height="30" viewBox="0 0 26 30" aria-hidden="true"><path d="M3 0h12l9 9v18a3 3 0 0 1-3 3H3a3 3 0 0 1-3-3V3a3 3 0 0 1 3-3z" fill="#8b5cf6"/><path d="M15 0l9 9h-6a3 3 0 0 1-3-3z" fill="#c4b0ff"/></svg>';
-
-  function btnDel(key, label){
+  function btnDel(key, label, disabled){
     var on = armed === key;
-    return '<button class="btn small danger' + (on ? ' armed' : '') + '" data-act="del" data-key="' + key + '">' + (on ? 'Точно удалить?' : label) + '</button>';
+    return '<button class="btn small danger' + (on ? ' armed' : '') + '" data-act="del" data-key="' + key + '"' + (disabled ? ' disabled' : '') + '>' + (on ? 'Точно удалить?' : label) + '</button>';
+  }
+  function opts(list, val){
+    return list.map(function(o){ return '<option value="' + o[0] + '"' + (o[0] === val ? ' selected' : '') + '>' + esc(o[1]) + '</option>'; }).join('');
+  }
+
+  function tabsBar(d, t){
+    var html = d.tabs.map(function(tab){
+      var isLink = tab.type === 'link' && !editing;
+      var on = tab.id === t.id && !isLink;
+      return '<a class="tab' + (on ? ' on' : '') + '" data-tid="' + esc(tab.id) + '" href="' + esc(isLink ? safeUrl(tab.url) : '#' + tab.id) + '"' +
+        (isLink ? ' target="_blank" rel="noopener noreferrer"' : '') + '>' + icon(tab.icon) +
+        '<span class="tl">' + esc(tab.name) + '</span><span class="tb"' + (tab.badge ? '' : ' hidden') + '>' + esc(tab.badge) + '</span>' + (isLink ? EXT : '') + '</a>';
+    }).join('');
+    if (editing) html += '<button class="btn small" data-act="addTab">+ Страница</button>';
+    return '<nav class="tabs" aria-label="Страницы сайта">' + html + '</nav>';
   }
 
   function tools(){
     if (!canEdit) return '';
     if (editing) return '<button class="btn" data-act="cancel">Отмена</button><button class="btn primary" data-act="save">Сохранить</button>';
-    return (local ? btnDel('reset', 'Сбросить к файлу') : '') +
+    return (local ? '<span class="status">Черновик в браузере</span>' + btnDel('reset', 'Сбросить к файлу') : '') +
       '<button class="btn" data-act="export">Данные для файла</button>' +
       '<button class="btn primary" data-act="edit">Редактировать</button>';
   }
 
+  function tabPanel(d, t){
+    var i = d.tabs.indexOf(t);
+    return '<section class="ed-panel"><h2>Настройки страницы</h2><div class="ed-grid">' +
+      '<div><div class="ed-lab">Название в меню</div><input class="field" id="f-name" data-f="tname" value="' + esc(t.name) + '"></div>' +
+      '<div><div class="ed-lab">Значок</div><select class="field" id="f-icon" data-f="ticon">' + opts(ICON_NAMES, t.icon) + '</select></div>' +
+      '<div><div class="ed-lab">Красная метка (необязательно)</div><input class="field" id="f-badge" data-f="tbadge" value="' + esc(t.badge) + '" placeholder="Например: -50%"></div>' +
+      '<div><div class="ed-lab">Что на странице</div><select class="field" id="f-type" data-f="ttype">' + opts(TYPES, t.type) + '</select></div>' +
+      (t.type === 'link' ? '<div><div class="ed-lab">Адрес ссылки</div><input class="field" id="f-url" data-f="turl" value="' + esc(t.url) + '" placeholder="https://discord.gg/..."></div>' : '') +
+      '</div><div class="ed-panel-actions">' +
+      '<button class="btn small" data-act="tabLeft"' + (i === 0 ? ' disabled' : '') + '>← Левее</button>' +
+      '<button class="btn small" data-act="tabRight"' + (i === d.tabs.length - 1 ? ' disabled' : '') + '>Правее →</button>' +
+      btnDel('tab', 'Удалить страницу', d.tabs.length < 2) + '</div></section>';
+  }
+
   function viewRules(c, ci){
-    if (!c.rules.length) return '<div class="empty"><b>В этом разделе пока нет правил.</b></div>';
+    if (!c || !c.rules.length) return '<div class="empty"><b>В этом разделе пока нет правил.</b></div>';
     return c.rules.map(function(r, i){
       return '<article class="rule"><div class="rule-body"><span class="num">' + (ci+1) + '.' + (i+1) + '</span><p>' + esc(r.t) + '</p></div>' +
         (r.p && r.p.trim() ? '<div class="pun">Наказание: ' + esc(r.p) + '</div>' : '') + '</article>';
     }).join('');
   }
-
   function editRules(c, ci){
+    if (!c) return '<div class="empty"><b>Разделов нет.</b> Нажмите «+ Раздел» слева.</div>';
     var head = '<div class="ed-head"><input class="field" id="cat-name" data-f="cat" value="' + esc(c.name) + '" aria-label="Название раздела">' + btnDel('cat', 'Удалить раздел') + '</div>';
     var list = c.rules.map(function(r, i){
       return '<div class="ed-rule"><span class="num">' + (ci+1) + '.' + (i+1) + '</span><div class="ed-fields">' +
@@ -357,45 +300,94 @@ textarea.field{resize:vertical;min-height:48px;overflow:hidden}
     return head + list + '<div><button class="btn" data-act="addRule">+ Добавить правило</button></div>';
   }
 
+  function viewCards(t){
+    if (!t.cards.length) return '<div class="empty"><b>На этой странице пока ничего нет.</b></div>';
+    return '<div class="cards">' + t.cards.map(function(c){
+      return '<article class="card">' + (c.h.trim() ? '<h3>' + esc(c.h) + '</h3>' : '') + '<p>' + esc(c.t) + '</p></article>';
+    }).join('') + '</div>';
+  }
+  function editCards(t){
+    var list = t.cards.map(function(c, i){
+      return '<div class="ed-rule"><div class="ed-fields">' +
+        '<div><div class="ed-lab">Заголовок</div><input class="field" id="ch-' + i + '" data-f="ch" data-i="' + i + '" value="' + esc(c.h) + '"></div>' +
+        '<div><div class="ed-lab">Текст</div><textarea class="field" id="ct-' + i + '" data-f="ct" data-i="' + i + '" rows="3">' + esc(c.t) + '</textarea></div>' +
+        '</div><div class="ed-actions">' +
+        '<button class="btn small" data-act="cup" data-i="' + i + '"' + (i === 0 ? ' disabled' : '') + ' aria-label="Выше">↑</button>' +
+        '<button class="btn small" data-act="cdown" data-i="' + i + '"' + (i === t.cards.length-1 ? ' disabled' : '') + ' aria-label="Ниже">↓</button>' +
+        btnDel('c' + i, 'Удалить') + '</div></div>';
+    }).join('');
+    return '<div class="rules">' + list + '<div><button class="btn" data-act="addCard">+ Добавить карточку</button></div></div>';
+  }
+
   function exportPanel(){
-    var json = JSON.stringify(saved, null, 2).replace(/</g, '\\u003c');
-    return '<section class="export"><h2>Данные для index.html</h2>' +
-      '<p>Правки сохранены только в этом браузере. Чтобы они появились на сайте для всех: скопируйте данные ниже, откройте <code>index.html</code>, ' +
-      'найдите блок <code>&lt;script id="rules-data"&gt;</code>, замените всё между его тегами скопированным текстом и загрузите файл на GitHub.</p>' +
+    var json = JSON.stringify(saved, null, 2);
+    return '<section class="export"><h2>Данные для data.json</h2>' +
+      '<p>Правки сохранены только в этом браузере. Чтобы их увидели все: скопируйте текст ниже, откройте файл <code>data.json</code> на GitHub, нажмите карандаш, выделите всё (Ctrl+A), вставьте (Ctrl+V) и нажмите Commit changes.</p>' +
       '<textarea class="field" id="exp" readonly>' + esc(json) + '</textarea>' +
       '<button class="btn primary" data-act="copy">Скопировать</button> <span class="status" id="copy-msg"></span></section>';
   }
 
   function render(){
-    var d = data(), c = curCat(d);
-    if (c) cur = c.id;
-    var ci = c ? d.cats.indexOf(c) : 0;
-    var nav = d.cats.map(function(k){
-      return '<a href="#' + k.id + '" class="' + (k.id === cur ? 'on' : '') + '">' + esc(k.name || 'Без названия') + '</a>';
-    }).join('') + (editing ? '<button class="btn small add" data-act="addCat">+ Раздел</button>' : '');
+    var d = data(), t = tabOf(d);
+    curTabId = t.id;
+    document.title = t.title || 'Правила сервера';
+    var layoutCls = 'layout', side = '', main;
+    if (t.type === 'rules'){
+      var c = catOf(t); if (c) curCatId = c.id;
+      var ci = c ? t.cats.indexOf(c) : 0;
+      side = '<nav class="nav" aria-label="Разделы">' + t.cats.map(function(k){
+        return '<a href="#' + esc(t.id) + '/' + esc(k.id) + '" class="' + (c && k.id === c.id ? 'on' : '') + '">' + esc(k.name || 'Без названия') + '</a>';
+      }).join('') + (editing ? '<button class="btn small add" data-act="addCat">+ Раздел</button>' : '') + '</nav>';
+      main = editing ? editRules(c, ci) : viewRules(c, ci);
+    } else if (t.type === 'cards'){
+      layoutCls += ' single';
+      main = editing ? editCards(t) : viewCards(t);
+    } else {
+      layoutCls += ' single';
+      main = editing
+        ? '<div class="empty"><b>Эта вкладка ведёт на другой сайт.</b><br>Впишите адрес в настройках страницы выше.</div>'
+        : '<div class="empty"><b>Эта страница — ссылка на другой сайт.</b><br>' + (t.url ? '<a href="' + esc(safeUrl(t.url)) + '" target="_blank" rel="noopener noreferrer">Открыть</a>' : 'Адрес ещё не указан.') + '</div>';
+    }
     var title = editing
-      ? '<input class="field" id="site-title" data-f="title" value="' + esc(d.title) + '" aria-label="Заголовок страницы" style="max-width:420px;font:700 20px var(--ff-head);text-transform:uppercase">'
-      : '<h1>' + esc(d.title) + '</h1>';
-    var main = !c ? '<div class="empty"><b>Разделов нет.</b></div>' : (editing ? editRules(c, ci) : viewRules(c, ci));
-    app.innerHTML = '<header class="top">' + ICON + title + '<span class="grow"></span><div class="tools">' + tools() + '</div></header>' +
-      '<div class="layout"><nav class="nav" aria-label="Разделы правил">' + nav + '</nav><main class="rules">' + main + '</main></div>' +
+      ? '<input class="field" id="site-title" data-f="ttitle" value="' + esc(t.title) + '" aria-label="Заголовок страницы" style="max-width:420px;font:700 20px var(--ff-head);text-transform:uppercase">'
+      : '<h1>' + esc(t.title) + '</h1>';
+    app.innerHTML = tabsBar(d, t) +
+      '<header class="top">' + icon(t.icon, 28) + title + '<span class="grow"></span><div class="tools">' + tools() + '</div></header>' +
+      (editing ? tabPanel(d, t) : '') +
+      '<div class="' + layoutCls + '">' + side + '<main class="rules">' + main + '</main></div>' +
       (canEdit && showExport && !editing ? exportPanel() : '');
     var tas = app.querySelectorAll('textarea:not([readonly])'); for (var i = 0; i < tas.length; i++) autosize(tas[i]);
   }
 
   function autosize(t){ t.style.height = 'auto'; t.style.height = (t.scrollHeight + 2) + 'px'; }
 
+  function live(tab){
+    var el = app.querySelector('.tab[data-tid="' + tab.id + '"]'); if (!el) return;
+    el.querySelector('.tl').textContent = tab.name;
+    var b = el.querySelector('.tb'); b.textContent = tab.badge; b.hidden = !tab.badge;
+  }
+
   app.addEventListener('input', function(e){
-    var t = e.target, f = t.dataset && t.dataset.f; if (!f || !draft) return;
-    if (f === 'title') draft.title = t.value;
-    else if (f === 'cat') curCat(draft).name = t.value;
-    else curCat(draft).rules[+t.dataset.i][f] = t.value;
-    if (t.tagName === 'TEXTAREA') autosize(t);
+    var el = e.target, f = el.dataset && el.dataset.f; if (!f || !draft) return;
+    var tab = tabOf(draft), i = +el.dataset.i;
+    if (f === 'ttitle') tab.title = el.value;
+    else if (f === 'tname'){ tab.name = el.value; live(tab); }
+    else if (f === 'tbadge'){ tab.badge = el.value; live(tab); }
+    else if (f === 'turl') tab.url = el.value;
+    else if (f === 'ticon'){ tab.icon = el.value; render(); return; }
+    else if (f === 'ttype'){ tab.type = el.value; render(); return; }
+    else if (f === 'cat') catOf(tab).name = el.value;
+    else if (f === 't' || f === 'p') catOf(tab).rules[i][f] = el.value;
+    else if (f === 'ch') tab.cards[i].h = el.value;
+    else if (f === 'ct') tab.cards[i].t = el.value;
+    if (el.tagName === 'TEXTAREA') autosize(el);
   });
+
+  function swap(arr, i, j){ var x = arr[i]; arr[i] = arr[j]; arr[j] = x; }
 
   app.addEventListener('click', function(e){
     var b = e.target.closest('[data-act]'); if (!b || b.disabled) return;
-    var act = b.dataset.act, i = +b.dataset.i, c;
+    var act = b.dataset.act, i = +b.dataset.i, tab, c;
     if (act === 'del'){
       var key = b.dataset.key;
       if (armed !== key){ armed = key; render(); return; }
@@ -404,16 +396,18 @@ textarea.field{resize:vertical;min-height:48px;overflow:hidden}
         try { localStorage.removeItem(KEY); } catch (err) {}
         local = null; saved = fileData; render(); return;
       }
-      c = curCat(draft);
-      if (key === 'cat'){ draft.cats.splice(draft.cats.indexOf(c), 1); cur = draft.cats[0] ? draft.cats[0].id : ''; }
-      else c.rules.splice(+key.slice(1), 1);
+      tab = tabOf(draft);
+      if (key === 'tab'){ draft.tabs.splice(draft.tabs.indexOf(tab), 1); curTabId = draft.tabs[0].id; curCatId = ''; }
+      else if (key === 'cat'){ tab.cats.splice(tab.cats.indexOf(catOf(tab)), 1); curCatId = ''; }
+      else if (key.charAt(0) === 'r') catOf(tab).rules.splice(+key.slice(1), 1);
+      else if (key.charAt(0) === 'c') tab.cards.splice(+key.slice(1), 1);
       render(); return;
     }
     armed = null;
     if (act === 'edit'){ draft = JSON.parse(JSON.stringify(saved)); editing = true; showExport = false; render(); }
     else if (act === 'cancel'){ editing = false; draft = null; render(); }
     else if (act === 'save'){
-      saved = JSON.parse(JSON.stringify(draft)); local = saved;
+      saved = normalize(JSON.parse(JSON.stringify(draft))); local = saved;
       try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch (err) {}
       editing = false; draft = null; showExport = true; render();
       var ex = document.getElementById('exp'); if (ex) ex.scrollIntoView({block:'center'});
@@ -421,19 +415,43 @@ textarea.field{resize:vertical;min-height:48px;overflow:hidden}
     else if (act === 'export'){ showExport = !showExport; render(); }
     else if (act === 'copy'){
       var ta = document.getElementById('exp'), m = document.getElementById('copy-msg');
-      function sel(){ ta.focus(); ta.select(); if (m) m.textContent = 'Выделено, нажмите Ctrl+C'; }
+      var sel = function(){ ta.focus(); ta.select(); if (m) m.textContent = 'Выделено, нажмите Ctrl+C'; };
       if (navigator.clipboard && navigator.clipboard.writeText){
         navigator.clipboard.writeText(ta.value).then(function(){ if (m) m.textContent = 'Скопировано'; }, sel);
       } else sel();
     }
-    else if (act === 'addRule'){ curCat(draft).rules.push({t:'', p:''}); render(); var tas = app.querySelectorAll('textarea'); if (tas.length) tas[tas.length-1].focus(); }
-    else if (act === 'up'){ c = curCat(draft); c.rules.splice(i-1, 0, c.rules.splice(i, 1)[0]); render(); }
-    else if (act === 'down'){ c = curCat(draft); c.rules.splice(i+1, 0, c.rules.splice(i, 1)[0]); render(); }
-    else if (act === 'addCat'){ var n = {id: uid(), name: 'Новый раздел', rules: []}; draft.cats.push(n); cur = n.id; render(); var f = document.getElementById('cat-name'); if (f){ f.focus(); f.select(); } }
+    else if (act === 'addTab'){
+      var n = { id: uid('p-'), name: 'Новая страница', icon: 'info', badge: '', type: 'cards', title: 'Новая страница', url: '', cats: [], cards: [] };
+      draft.tabs.push(n); go(n.id);
+      var f = document.getElementById('f-name'); if (f){ f.focus(); f.select(); }
+    }
+    else if (act === 'tabLeft'){ tab = tabOf(draft); i = draft.tabs.indexOf(tab); if (i > 0){ swap(draft.tabs, i, i-1); render(); } }
+    else if (act === 'tabRight'){ tab = tabOf(draft); i = draft.tabs.indexOf(tab); if (i < draft.tabs.length-1){ swap(draft.tabs, i, i+1); render(); } }
+    else if (act === 'addRule'){ catOf(tabOf(draft)).rules.push({t:'', p:''}); render(); var tas = app.querySelectorAll('textarea'); if (tas.length) tas[tas.length-1].focus(); }
+    else if (act === 'up'){ c = catOf(tabOf(draft)); swap(c.rules, i, i-1); render(); }
+    else if (act === 'down'){ c = catOf(tabOf(draft)); swap(c.rules, i, i+1); render(); }
+    else if (act === 'addCat'){
+      tab = tabOf(draft); var k = {id: uid('sec-'), name: 'Новый раздел', rules: []}; tab.cats.push(k); curCatId = k.id; render();
+      var fc = document.getElementById('cat-name'); if (fc){ fc.focus(); fc.select(); }
+    }
+    else if (act === 'addCard'){ tab = tabOf(draft); tab.cards.push({h:'', t:''}); render(); var ch = document.getElementById('ch-' + (tab.cards.length-1)); if (ch) ch.focus(); }
+    else if (act === 'cup'){ tab = tabOf(draft); swap(tab.cards, i, i-1); render(); }
+    else if (act === 'cdown'){ tab = tabOf(draft); swap(tab.cards, i, i+1); render(); }
   });
 
-  window.addEventListener('hashchange', function(){ cur = location.hash.slice(1); armed = null; render(); });
-  render();
+  window.addEventListener('hashchange', function(){ parseHash(); armed = null; render(); });
+
+  function start(json){
+    fileData = normalize(json);
+    if (canEdit){ try { var raw = localStorage.getItem(KEY); if (raw) local = normalize(JSON.parse(raw)); } catch (e) {} }
+    saved = local || fileData;
+    parseHash(); render();
+  }
+
+  // Все тексты лежат в файле data.json рядом с index.html
+  fetch('data.json?v=' + Date.now(), { cache: 'no-store' })
+    .then(function(r){ if (!r.ok) throw new Error('no data'); return r.json(); })
+    .then(start, function(){ start(defaultData()); });
 })();
 </script>
 </body>
