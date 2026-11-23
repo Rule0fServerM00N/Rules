@@ -473,6 +473,195 @@ textarea.field{resize:vertical;min-height:48px;overflow:hidden}
     else if (act === 'cdown'){ tab = tabOf(draft); swap(tab.cards, i, i+1); render(); }
   });
 
+  // ---------- Таблица банов и мутов (Supabase, обычный REST без библиотек) ----------
+  var pun = { rows: null, err: '', filter: 'all', q: '', formOpen: false, loginOpen: false, armed: null, session: null };
+  try { pun.session = JSON.parse(localStorage.getItem('pun-session')); } catch (e) {}
+
+  function punSave(j, email){
+    if (!j){ pun.session = null; try { localStorage.removeItem('pun-session'); } catch (e) {} return; }
+    pun.session = { access_token: j.access_token, refresh_token: j.refresh_token, exp: Date.now() + (j.expires_in || 3600) * 1000, email: email };
+    try { localStorage.setItem('pun-session', JSON.stringify(pun.session)); } catch (e) {}
+  }
+  function punBase(t){ return (t.sburl || '').replace(/\/+$/, ''); }
+  async function punEnsure(t){
+    var s = pun.session; if (!s || s.exp - 60000 > Date.now()) return;
+    try {
+      var r = await fetch(punBase(t) + '/auth/v1/token?grant_type=refresh_token', { method: 'POST', headers: { apikey: t.skey, 'Content-Type': 'application/json' }, body: JSON.stringify({ refresh_token: s.refresh_token }) });
+      if (!r.ok) throw 0;
+      punSave(await r.json(), s.email);
+    } catch (e) { punSave(null); }
+  }
+  async function punFetch(t, path, opts){
+    await punEnsure(t);
+    opts = opts || {};
+    var h = { apikey: t.skey };
+    if (pun.session) h.Authorization = 'Bearer ' + pun.session.access_token;
+    if (opts.body) h['Content-Type'] = 'application/json';
+    if (opts.prefer) h.Prefer = opts.prefer;
+    var r = await fetch(punBase(t) + path, { method: opts.method || 'GET', headers: h, body: opts.body });
+    if (!r.ok){ var er = new Error('HTTP ' + r.status); er.status = r.status; throw er; }
+    return r;
+  }
+  function punErr(e){
+    if (e.status === 401 || e.status === 403) return 'Нет доступа. Проверьте ключ и правила (SQL) в Supabase. Если вы админ, войдите заново.';
+    if (e.status === 404) return 'Таблица punishments не найдена. Выполните SQL из инструкции.';
+    return 'Не удалось связаться с базой. Проверьте адрес проекта.';
+  }
+  function punMin(r){ return r.duration_minutes == null ? null : r.duration_minutes; }
+  function punLen(m){
+    if (m == null) return 'Навсегда';
+    if (m % 1440 === 0) return (m / 1440) + ' дн.';
+    if (m % 60 === 0) return (m / 60) + ' ч';
+    return m + ' мин';
+  }
+  function punLeft(ms){
+    var m = Math.ceil(ms / 60000), d = Math.floor(m / 1440), h = Math.floor((m % 1440) / 60), mm = m % 60;
+    if (d) return d + ' дн. ' + h + ' ч';
+    if (h) return h + ' ч ' + mm + ' мин';
+    return mm + ' мин';
+  }
+  function punStatus(r){
+    if (r.revoked_at) return { k: 'revoked', t: 'Снят' };
+    var m = punMin(r); if (m == null) return { k: 'active', t: 'Действует' };
+    var left = new Date(r.created_at).getTime() + m * 60000 - Date.now();
+    return left > 0 ? { k: 'active', t: 'Осталось ' + punLeft(left) } : { k: 'ended', t: 'Истёк' };
+  }
+  function punDate(s){
+    try { return new Date(s).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }); } catch (e) { return s; }
+  }
+
+  function punDrawTable(){
+    var box = document.getElementById('pun-table'); if (!box) return;
+    if (pun.err){ box.innerHTML = '<div class="empty">' + esc(pun.err) + '</div>'; return; }
+    if (!pun.rows){ box.innerHTML = '<div class="empty">Загрузка…</div>'; return; }
+    var q = pun.q.trim().toLowerCase(), adm = !!pun.session;
+    var rows = pun.rows.filter(function(r){
+      if (pun.filter === 'ban' && r.kind !== 'ban') return false;
+      if (pun.filter === 'mute' && r.kind !== 'mute') return false;
+      if (pun.filter === 'active' && punStatus(r).k !== 'active') return false;
+      return !q || String(r.player).toLowerCase().indexOf(q) > -1;
+    });
+    if (!rows.length){ box.innerHTML = '<div class="empty"><b>Ничего не найдено.</b></div>'; return; }
+    box.innerHTML = '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Игрок</th><th>Тип</th><th>Причина</th><th>Админ</th><th>Дата</th><th>Срок</th><th>Статус</th>' + (adm ? '<th></th>' : '') + '</tr></thead><tbody>' +
+      rows.map(function(r){
+        var st = punStatus(r);
+        return '<tr><td class="pl">' + esc(r.player) + '</td><td><span class="chip ' + (r.kind === 'ban' ? 'ban' : 'mute') + '">' + (r.kind === 'ban' ? 'Бан' : 'Мут') + '</span></td>' +
+          '<td>' + esc(r.reason) + '</td><td>' + esc(r.admin) + '</td><td class="nw">' + esc(punDate(r.created_at)) + '</td><td class="nw">' + esc(punLen(punMin(r))) + '</td>' +
+          '<td class="nw"><span class="chip ' + st.k + '">' + esc(st.t) + '</span></td>' +
+          (adm ? '<td><div class="row-act">' + (r.revoked_at ? '' : '<button class="btn small" data-pa="revoke" data-id="' + r.id + '">Снять</button>') +
+            '<button class="btn small danger' + (pun.armed === r.id ? ' armed' : '') + '" data-pa="del" data-id="' + r.id + '">' + (pun.armed === r.id ? 'Точно?' : 'Удалить') + '</button></div></td>' : '') + '</tr>';
+      }).join('') + '</tbody></table></div>';
+  }
+
+  function punDrawAuth(){
+    var act = document.getElementById('pun-actions'), box = document.getElementById('pun-auth'); if (!act || !box) return;
+    if (pun.session){
+      act.innerHTML = '<button class="btn small primary" data-pa="form-toggle">+ Добавить наказание</button><button class="btn small" data-pa="logout">Выйти</button>';
+      box.innerHTML = pun.formOpen
+        ? '<form id="pun-add" class="ed-panel"><h2>Новое наказание</h2><div class="ed-grid">' +
+          '<div><div class="ed-lab">Тип</div><select class="field" id="pa-kind"><option value="ban">Бан</option><option value="mute">Мут</option></select></div>' +
+          '<div><div class="ed-lab">Ник игрока</div><input class="field" id="pa-player" required maxlength="64" autocomplete="off"></div>' +
+          '<div><div class="ed-lab">Причина</div><input class="field" id="pa-reason" required maxlength="500" autocomplete="off"></div>' +
+          '<div><div class="ed-lab">Админ</div><input class="field" id="pa-admin" required maxlength="64" autocomplete="off" value="' + esc(punAdmin()) + '"></div>' +
+          '<div><div class="ed-lab">Срок</div><div class="dur-row"><input class="field" id="pa-num" type="number" min="1" value="1"><select class="field" id="pa-unit"><option value="1">мин.</option><option value="60">ч</option><option value="1440" selected>дн.</option></select></div>' +
+          '<label class="chk"><input type="checkbox" id="pa-perm"> Навсегда</label></div></div>' +
+          '<div class="ed-panel-actions"><button class="btn primary" type="submit">Добавить</button><span class="status" id="pun-msg"></span></div></form>'
+        : '';
+    } else {
+      act.innerHTML = '<button class="btn small" data-pa="login-toggle">Вход для админов</button>';
+      box.innerHTML = pun.loginOpen
+        ? '<form id="pun-login" class="ed-panel"><h2>Вход для админов</h2><div class="ed-grid">' +
+          '<div><div class="ed-lab">Почта</div><input class="field" id="pl-email" type="email" required autocomplete="username"></div>' +
+          '<div><div class="ed-lab">Пароль</div><input class="field" id="pl-pass" type="password" required autocomplete="current-password"></div></div>' +
+          '<div class="ed-panel-actions"><button class="btn primary" type="submit">Войти</button><span class="status" id="pun-msg"></span></div></form>'
+        : '';
+    }
+  }
+  function punAdmin(){ try { return localStorage.getItem('pun-admin') || ''; } catch (e) { return ''; } }
+  function punMsg(s){ var m = document.getElementById('pun-msg'); if (m) m.textContent = s; }
+
+  async function punLoad(t){
+    pun.err = '';
+    try { pun.rows = await (await punFetch(t, '/rest/v1/punishments?select=*&order=created_at.desc&limit=500')).json(); }
+    catch (e){ pun.err = punErr(e); }
+    punDrawTable(); punDrawAuth();
+  }
+
+  function punMount(t){
+    var root = document.getElementById('pun-root'); if (!root) return;
+    if (!t.sburl || !t.skey){
+      root.innerHTML = '<div class="empty"><b>Таблица наказаний ещё не подключена.</b>' + (canEdit ? '<br>Откройте «Редактировать» и впишите адрес проекта и ключ в настройках страницы.' : '') + '</div>';
+      return;
+    }
+    root.innerHTML = '<div class="pun-bar"><div class="chips">' +
+      [['all','Все'],['ban','Баны'],['mute','Муты'],['active','Действующие']].map(function(f){
+        return '<button class="btn small' + (pun.filter === f[0] ? ' on' : '') + '" data-pa="filter" data-v="' + f[0] + '">' + f[1] + '</button>';
+      }).join('') + '</div><input class="field" id="pun-q" type="search" placeholder="Поиск по нику" value="' + esc(pun.q) + '" aria-label="Поиск по нику"><span class="sp"></span><span id="pun-actions" style="display:flex;gap:8px;flex-wrap:wrap"></span></div>' +
+      '<div id="pun-auth"></div><div id="pun-table"></div>';
+    punDrawAuth(); punDrawTable();
+
+    root.addEventListener('input', function(e){
+      if (e.target.id === 'pun-q'){ pun.q = e.target.value; punDrawTable(); }
+    });
+    root.addEventListener('click', function(e){
+      var b = e.target.closest('[data-pa]'); if (!b) return;
+      var a = b.dataset.pa, id = b.dataset.id;
+      if (a !== 'del') pun.armed = null;
+      if (a === 'filter'){
+        pun.filter = b.dataset.v;
+        var bs = root.querySelectorAll('[data-pa=filter]'); for (var i = 0; i < bs.length; i++) bs[i].classList.toggle('on', bs[i] === b);
+        punDrawTable();
+      }
+      else if (a === 'login-toggle'){ pun.loginOpen = !pun.loginOpen; punDrawAuth(); var em = document.getElementById('pl-email'); if (em) em.focus(); }
+      else if (a === 'form-toggle'){ pun.formOpen = !pun.formOpen; punDrawAuth(); var p = document.getElementById('pa-player'); if (p) p.focus(); }
+      else if (a === 'logout'){ punSave(null); pun.formOpen = false; punDrawAuth(); punDrawTable(); }
+      else if (a === 'revoke'){
+        punFetch(t, '/rest/v1/punishments?id=eq.' + encodeURIComponent(id), { method: 'PATCH', body: JSON.stringify({ revoked_at: new Date().toISOString() }) })
+          .then(function(){ return punLoad(t); }, function(er){ pun.err = punErr(er); punDrawTable(); });
+      }
+      else if (a === 'del'){
+        if (pun.armed !== id){ pun.armed = id; punDrawTable(); return; }
+        pun.armed = null;
+        punFetch(t, '/rest/v1/punishments?id=eq.' + encodeURIComponent(id), { method: 'DELETE' })
+          .then(function(){ return punLoad(t); }, function(er){ pun.err = punErr(er); punDrawTable(); });
+      }
+    });
+    root.addEventListener('submit', async function(e){
+      e.preventDefault();
+      if (e.target.id === 'pun-login'){
+        punMsg('Вхожу…');
+        var email = document.getElementById('pl-email').value.trim();
+        try {
+          var r = await fetch(punBase(t) + '/auth/v1/token?grant_type=password', { method: 'POST', headers: { apikey: t.skey, 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email, password: document.getElementById('pl-pass').value }) });
+          if (!r.ok) throw new Error('bad');
+          punSave(await r.json(), email); pun.loginOpen = false; pun.formOpen = true;
+          punDrawAuth(); punLoad(t);
+        } catch (er){ punMsg('Неверная почта или пароль.'); }
+      }
+      else if (e.target.id === 'pun-add'){
+        var perm = document.getElementById('pa-perm').checked;
+        var num = parseInt(document.getElementById('pa-num').value, 10);
+        if (!perm && !(num > 0)){ punMsg('Укажите срок.'); return; }
+        var adm = document.getElementById('pa-admin').value.trim();
+        var row = {
+          kind: document.getElementById('pa-kind').value,
+          player: document.getElementById('pa-player').value.trim(),
+          reason: document.getElementById('pa-reason').value.trim(),
+          admin: adm,
+          duration_minutes: perm ? null : num * parseInt(document.getElementById('pa-unit').value, 10)
+        };
+        punMsg('Сохраняю…');
+        try {
+          await punFetch(t, '/rest/v1/punishments', { method: 'POST', body: JSON.stringify(row), prefer: 'return=minimal' });
+          try { localStorage.setItem('pun-admin', adm); } catch (er) {}
+          document.getElementById('pa-player').value = ''; document.getElementById('pa-reason').value = '';
+          punMsg('Добавлено'); punLoad(t);
+        } catch (er){ punMsg(er.status === 401 || er.status === 403 ? 'Нет прав. Войдите заново.' : 'Не удалось сохранить.'); }
+      }
+    });
+    punLoad(t);
+  }
+
   window.addEventListener('hashchange', function(){ parseHash(); armed = null; render(); });
 
   function start(json){
