@@ -139,6 +139,11 @@ textarea.field{resize:vertical;min-height:48px;overflow:hidden}
 .dur-row{display:flex;gap:8px}
 .chk{display:flex;align-items:center;gap:8px;font-size:14px;margin-top:8px}
 
+/* links inside texts */
+.card a,.rule a{color:var(--accent-hi);text-decoration:underline;text-underline-offset:3px;overflow-wrap:anywhere}
+.card a:hover,.rule a:hover{color:#fff}
+.pun a{color:inherit}
+
 /* snow */
 #snow{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:5}
 #snow-btn{position:fixed;z-index:6;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));width:40px;height:40px;display:grid;place-items:center;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--accent-hi);cursor:pointer;opacity:.75;transition:opacity .15s,background .15s}
@@ -209,6 +214,16 @@ textarea.field{resize:vertical;min-height:48px;overflow:hidden}
   var EXT = '<svg class="ext" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7M8 7h9v9"/></svg>';
 
   function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  // Текст с кликабельными ссылками (только http и https), всё остальное экранируется
+  function rich(s){
+    s = String(s); var out = '', last = 0, re = /https?:\/\/[^\s<>"]+/g, m;
+    while ((m = re.exec(s))){
+      var url = m[0].replace(/[.,;:!?)\]»]+$/, '');
+      out += esc(s.slice(last, m.index)) + '<a href="' + esc(url) + '" target="_blank" rel="noopener noreferrer">' + esc(url) + '</a>';
+      last = m.index + url.length; re.lastIndex = last;
+    }
+    return out + esc(s.slice(last));
+  }
   function uid(p){ return p + Date.now().toString(36) + Math.random().toString(36).slice(2, 5); }
   function safeUrl(u){ return /^https?:\/\//i.test(u || '') ? u : '#'; }
 
@@ -375,8 +390,8 @@ textarea.field{resize:vertical;min-height:48px;overflow:hidden}
   function viewRules(c, ci){
     if (!c || !c.rules.length) return '<div class="empty"><b>В этом разделе пока нет правил.</b></div>';
     return c.rules.map(function(r, i){
-      return '<article class="rule"><div class="rule-body"><span class="num">' + (ci+1) + '.' + (i+1) + '</span><p>' + esc(r.t) + '</p></div>' +
-        (r.p && r.p.trim() ? '<div class="pun">Наказание: ' + esc(r.p) + '</div>' : '') + '</article>';
+      return '<article class="rule"><div class="rule-body"><span class="num">' + (ci+1) + '.' + (i+1) + '</span><p>' + rich(r.t) + '</p></div>' +
+        (r.p && r.p.trim() ? '<div class="pun">Наказание: ' + rich(r.p) + '</div>' : '') + '</article>';
     }).join('');
   }
   function editRules(c, ci){
@@ -397,7 +412,7 @@ textarea.field{resize:vertical;min-height:48px;overflow:hidden}
   function viewCards(t){
     if (!t.cards.length) return '<div class="empty"><b>На этой странице пока ничего нет.</b></div>';
     return '<div class="cards">' + t.cards.map(function(c){
-      return '<article class="card">' + (c.h.trim() ? '<h3>' + esc(c.h) + '</h3>' : '') + '<p>' + esc(c.t) + '</p></article>';
+      return '<article class="card">' + (c.h.trim() ? '<h3>' + esc(c.h) + '</h3>' : '') + '<p>' + rich(c.t) + '</p></article>';
     }).join('') + '</div>';
   }
   function editCards(t){
