@@ -7,7 +7,7 @@
       "badge": "",
       "type": "cards",
       "title": "Ссылки и Айпи",
-      "url": "",
+      "url": "Дискорд - https://discord.gg/x7daGbZa7U",
       "cats": [],
       "cards": [
         {
@@ -234,6 +234,19 @@
       "cards": [],
       "sburl": "https://mhsmouapemihdlkosoon.supabase.co",
       "skey": "sb_publishable_g1bM6WN6sHnth2SoBqXCWg_0QbUKpk6"
+    },
+    {
+      "id": "p-mwufu69siib",
+      "name": "Модерация и",
+      "icon": "user",
+      "badge": "Администрация",
+      "type": "staff",
+      "title": "Список администраторов",
+      "url": "",
+      "cats": [],
+      "cards": [],
+      "sburl": "",
+      "skey": ""
     }
   ]
 }
