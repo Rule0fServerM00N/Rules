@@ -139,6 +139,13 @@ textarea.field{resize:vertical;min-height:48px;overflow:hidden}
 .dur-row{display:flex;gap:8px}
 .chk{display:flex;align-items:center;gap:8px;font-size:14px;margin-top:8px}
 
+/* snow */
+#snow{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:5}
+#snow-btn{position:fixed;z-index:6;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));width:40px;height:40px;display:grid;place-items:center;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--accent-hi);cursor:pointer;opacity:.75;transition:opacity .15s,background .15s}
+#snow-btn:hover{opacity:1;background:var(--nav-on)}
+#snow-btn[aria-pressed="false"]{color:var(--muted);opacity:.5}
+#snow-btn:focus-visible{outline:2px solid var(--accent-hi);outline-offset:2px}
+
 /* admin accounts */
 .acc{display:flex;align-items:center;gap:8px;background:none;border:0;color:var(--fg);font:600 14px var(--ff-body);cursor:pointer;padding:6px 10px;border-radius:12px;flex:none}
 .acc:hover{background:rgba(139,92,246,.14)}
@@ -275,6 +282,49 @@ textarea.field{resize:vertical;min-height:48px;overflow:hidden}
       sky.appendChild(s);
     }
     document.body.insertBefore(sky, document.body.firstChild);
+  })();
+
+  // снег (кнопку выключения запоминает браузер; при «уменьшении анимации» в системе снег по умолчанию выключен)
+  (function(){
+    var mq = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
+    var on = true;
+    try { var sv = localStorage.getItem('snow'); if (sv === '0') on = false; else if (sv === null && mq && mq.matches) on = false; } catch (e) {}
+    var cv = document.createElement('canvas'); cv.id = 'snow'; cv.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(cv);
+    var btn = document.createElement('button'); btn.id = 'snow-btn'; btn.type = 'button'; btn.title = 'Снег';
+    btn.setAttribute('aria-label', 'Включить или выключить снег');
+    btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2v20M4.9 7l14.2 10M4.9 17L19.1 7M9 4l3 2 3-2M9 20l3-2 3 2"/></svg>';
+    document.body.appendChild(btn);
+    var ctx = cv.getContext('2d'), W = 0, H = 0, flakes = [], raf = 0;
+    function make(init){
+      var r = Math.random() * 2.6 + .8;
+      return { x: Math.random() * W, y: init ? Math.random() * H : -10, r: r, vy: r * .28 + .35, vx: (Math.random() - .5) * .3, ph: Math.random() * 6.28, sw: Math.random() * .6 + .2, a: Math.random() * .5 + .4 };
+    }
+    function size(){
+      var dpr = Math.min(window.devicePixelRatio || 1, 2);
+      W = window.innerWidth; H = window.innerHeight;
+      cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      var n = Math.round(Math.min(160, Math.max(50, W * H / 12000)));
+      while (flakes.length < n) flakes.push(make(true));
+      flakes.length = n;
+    }
+    function tick(t){
+      ctx.clearRect(0, 0, W, H); ctx.fillStyle = '#f3eeff';
+      for (var i = 0; i < flakes.length; i++){
+        var f = flakes[i];
+        f.y += f.vy; f.x += f.vx + Math.sin(t / 1500 + f.ph) * f.sw * .5;
+        if (f.y > H + 10 || f.x < -20 || f.x > W + 20){ flakes[i] = make(false); flakes[i].x = Math.random() * W; continue; }
+        ctx.globalAlpha = f.a; ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, 6.2832); ctx.fill();
+      }
+      raf = requestAnimationFrame(tick);
+    }
+    function start(){ if (!raf){ size(); raf = requestAnimationFrame(tick); } cv.hidden = false; }
+    function stop(){ if (raf){ cancelAnimationFrame(raf); raf = 0; } ctx.clearRect(0, 0, W, H); cv.hidden = true; }
+    function apply(){ btn.setAttribute('aria-pressed', on ? 'true' : 'false'); if (on) start(); else stop(); }
+    btn.addEventListener('click', function(){ on = !on; try { localStorage.setItem('snow', on ? '1' : '0'); } catch (e) {} apply(); });
+    window.addEventListener('resize', function(){ if (raf) size(); });
+    document.addEventListener('visibilitychange', function(){ if (document.hidden){ if (raf){ cancelAnimationFrame(raf); raf = 0; } } else if (on) start(); });
+    apply();
   })();
 
   function btnDel(key, label, disabled){
