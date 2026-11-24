@@ -726,11 +726,17 @@ textarea.field{resize:vertical;min-height:48px;overflow:hidden}
     if (!sbCfg()) return '<div class="empty"><b>Список администраторов ещё не подключён.</b></div>';
     if (!pun.session) return '<div class="empty"><b>Раздел только для администрации.</b><br>Войдите, чтобы увидеть список.<br><button class="btn small" data-acc="login" style="margin-top:12px">Вход для админов</button></div>';
     if (!pun.profList) return '<div class="empty">Загрузка…</div>';
-    var list = pun.profList.filter(function(p){ return p.nick || p.avatar; }).sort(function(a, b){ return String(a.nick).localeCompare(String(b.nick), 'ru'); });
-    if (!list.length) return '<div class="empty"><b>Пока никто не заполнил профиль.</b><br>Нажмите на свою аватарку в меню и укажите ник.</div>';
+    var list = pun.profList.slice().sort(function(a, b){
+      var ca = pun.curators[a.user_id] ? 0 : 1, cb = pun.curators[b.user_id] ? 0 : 1;
+      if (ca !== cb) return ca - cb;
+      if (!a.nick !== !b.nick) return a.nick ? -1 : 1;
+      return String(a.nick).localeCompare(String(b.nick), 'ru');
+    });
+    if (!list.length) return '<div class="empty"><b>Администраторов пока нет.</b><br>Создайте аккаунты в Supabase и выполните SQL из инструкции.</div>';
     return '<div class="staff-grid">' + list.map(function(p){
       var cur = !!pun.curators[p.user_id];
-      return '<article class="card staff">' + avatarHtml(p.avatar, p.nick, 64) + '<div><h3>' + esc(p.nick || 'Без ника') + '</h3><span class="chip ' + (cur ? 'active' : 'mute') + '">' + (cur ? 'Куратор' : 'Админ') + '</span></div></article>';
+      return '<article class="card staff">' + avatarHtml(p.avatar, p.nick, 64) + '<div><h3>' + esc(p.nick || 'Без ника') + '</h3><span class="chip ' + (cur ? 'active' : 'mute') + '">' + (cur ? 'Куратор' : 'Админ') + '</span>' +
+        (p.nick ? '' : '<div class="status" style="margin-top:6px">Ещё не заполнил профиль</div>') + '</div></article>';
     }).join('') + '</div>';
   }
 
