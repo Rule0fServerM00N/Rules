@@ -139,6 +139,8 @@ textarea.field{resize:vertical;min-height:48px;overflow:hidden}
 .dur-row{display:flex;gap:8px}
 .chk{display:flex;align-items:center;gap:8px;font-size:14px;margin-top:8px}
 
+.chip.owner{background:rgba(229,72,77,.2);color:#ff6b73}
+
 /* links inside texts */
 .card a,.rule a{color:var(--accent-hi);text-decoration:underline;text-underline-offset:3px;overflow-wrap:anywhere}
 .card a:hover,.rule a:hover{color:#fff}
@@ -646,7 +648,7 @@ textarea.field{resize:vertical;min-height:48px;overflow:hidden}
   function punDrawAuth(){
     var act = document.getElementById('pun-actions'), box = document.getElementById('pun-auth'); if (!act || !box) return;
     if (pun.session){
-      act.innerHTML = (pun.curator ? '<span class="chip active" style="align-self:center">Куратор</span>' : '') + '<button class="btn small primary" data-pa="form-toggle">+ Добавить наказание</button><button class="btn small" data-pa="logout">Выйти</button>';
+      act.innerHTML = (pun.curator ? roleChip(roleOf(pun.uid), 'align-self:center') : '') + '<button class="btn small primary" data-pa="form-toggle">+ Добавить наказание</button><button class="btn small" data-pa="logout">Выйти</button>';
       box.innerHTML = pun.formOpen
         ? '<form id="pun-add" class="ed-panel"><h2>Новое наказание</h2><div class="ed-grid">' +
           '<div><div class="ed-lab">Тип</div><select class="field" id="pa-kind"><option value="ban">Бан</option><option value="mute">Мут</option></select></div>' +
@@ -751,7 +753,10 @@ textarea.field{resize:vertical;min-height:48px;overflow:hidden}
     } catch (e) { if (!pun.profList) pun.profList = []; }
     pun.curators = {};
     if (pun.session){
-      try { (await (await punFetch(t, '/rest/v1/curators?select=user_id')).json()).forEach(function(c){ pun.curators[c.user_id] = 1; }); } catch (e) {}
+      var cu = null;
+      try { cu = await (await punFetch(t, '/rest/v1/curators?select=user_id,role')).json(); }
+      catch (e) { try { cu = await (await punFetch(t, '/rest/v1/curators?select=user_id')).json(); } catch (e2) {} }
+      (cu || []).forEach(function(c){ pun.curators[c.user_id] = c.role === 'owner' ? 'owner' : 'curator'; });
       if (pun.session && !pun.session.uid){
         try {
           var u = await (await punFetch(t, '/auth/v1/user')).json();
@@ -769,6 +774,11 @@ textarea.field{resize:vertical;min-height:48px;overflow:hidden}
     if (!editing) render();
   }
 
+  function roleOf(uid){ return pun.curators[uid] || ''; }
+  function roleChip(role, extra){
+    var c = role === 'owner' ? 'owner' : role ? 'active' : 'mute';
+    return '<span class="chip ' + c + '"' + (extra ? ' style="' + extra + '"' : '') + '>' + (role === 'owner' ? 'Owner' : role ? 'Куратор' : 'Админ') + '</span>';
+  }
   function avatarHtml(src, name, size){
     var st = 'width:' + size + 'px;height:' + size + 'px;border-radius:' + Math.round(size * .3) + 'px';
     if (src && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/=]+$/.test(src)) return '<img class="av" style="' + st + '" src="' + src + '" alt="">';
@@ -792,15 +802,14 @@ textarea.field{resize:vertical;min-height:48px;overflow:hidden}
     if (!pun.session) return '<div class="empty"><b>Раздел только для администрации.</b><br>Войдите, чтобы увидеть список.<br><button class="btn small" data-acc="login" style="margin-top:12px">Вход для админов</button></div>';
     if (!pun.profList) return '<div class="empty">Загрузка…</div>';
     var list = pun.profList.slice().sort(function(a, b){
-      var ca = pun.curators[a.user_id] ? 0 : 1, cb = pun.curators[b.user_id] ? 0 : 1;
+      var rk = function(u){ var r = pun.curators[u]; return r === 'owner' ? 0 : r ? 1 : 2; }; var ca = rk(a.user_id), cb = rk(b.user_id);
       if (ca !== cb) return ca - cb;
       if (!a.nick !== !b.nick) return a.nick ? -1 : 1;
       return String(a.nick).localeCompare(String(b.nick), 'ru');
     });
     if (!list.length) return '<div class="empty"><b>Администраторов пока нет.</b><br>Создайте аккаунты в Supabase и выполните SQL из инструкции.</div>';
     return '<div class="staff-grid">' + list.map(function(p){
-      var cur = !!pun.curators[p.user_id];
-      return '<article class="card staff">' + avatarHtml(p.avatar, p.nick, 64) + '<div><h3>' + esc(p.nick || 'Без ника') + '</h3><span class="chip ' + (cur ? 'active' : 'mute') + '">' + (cur ? 'Куратор' : 'Админ') + '</span>' +
+      return '<article class="card staff">' + avatarHtml(p.avatar, p.nick, 64) + '<div><h3>' + esc(p.nick || 'Без ника') + '</h3>' + roleChip(roleOf(p.user_id)) +
         (p.nick ? '' : '<div class="status" style="margin-top:6px">Ещё не заполнил профиль</div>') + '</div></article>';
     }).join('') + '</div>';
   }
